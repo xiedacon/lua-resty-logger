@@ -189,7 +189,7 @@ Same as ``Logger([opts])``
 
 创建 Logger 实例时，会将全局 opts 和当前实例的 opts 合并，并创建对应 level 的方法
 
-logger:[level]([msg], meta)
+logger:level([msg], meta)
 
 * ``msg`` ``<string>`` 日志描述
 * ``meta`` ``<table>`` 附加信息
