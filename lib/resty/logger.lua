@@ -47,6 +47,7 @@ setmetatable(Logger, {
         setmetatable(logger, { __index = self })
 
         if type(opts) == "string" then opts = { scope = opts } end
+        if type(opts.scope) ~= "string" then return nil, "opts scope should be string" end
 
         local ok, err = logger:set_opts(opts)
         if ok then
@@ -58,7 +59,7 @@ setmetatable(Logger, {
 })
 
 function Logger:set_opts(opts)
-    if type(opts.scope) ~= "string" then return false, "opts scope should be string" end
+    if opts.scope and type(opts.scope) ~= "string" then return false, "opts scope should be string" end
     if opts.levels and type(opts.levels) ~= "table" then return false, "opts levels should be table or nil" end
     if opts.output_level and type(opts.output_level) ~= "number" then return false, "opts output_level should be number or nil" end
     if opts.formatter and type(opts.formatter) ~= "function" then return false, "opts formatter should be function or nil" end
