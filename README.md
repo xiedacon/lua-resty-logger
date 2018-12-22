@@ -22,7 +22,7 @@ logger:error("This is a error")
 -- cat ngx.config.prefix()/logs/error.log
 ```
 
-### 自定义日志输出文件
+### 自定义日志输出文件
 
 ```lua
 local Logger = require "resty.logger"
@@ -86,7 +86,7 @@ logger:warn("This is a warn")
 -- cat ngx.config.prefix()/logs/warn.log
 ```
 
-默认的输出级别为 ``info``，可通过 ``LOGGER_OUTPUT_LEVEL`` 环境变量或 ``Logger:set_globle_opts()`` 进行修改。同样的，输出级别也是每个 Logger 实例相互独立的
+默认的输出级别为 ``info``，可通过 ``LOGGER_OUTPUT_LEVEL`` 环境变量或 ``Logger:set_globle_opts()`` 进行修改。同样的，输出级别也是每个 Logger 实例相互独立的
 
 ```lua
 -- export LOGGER_OUTPUT_LEVEL="debug"
@@ -176,7 +176,7 @@ Same as ``Logger([opts])``
 
 ### logger:flush()
 
-强制将日志输出到硬盘
+强制将日志输出到硬盘
 
 ### logger:log(params)
 
