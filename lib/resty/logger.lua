@@ -15,6 +15,7 @@ local LEVELS = {
 }
 
 local Logger = {
+    _VERSION = '0.1',
     _logs = Array(),
     _opts = {
         flush_interval = 10,
