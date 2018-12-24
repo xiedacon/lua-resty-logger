@@ -1,10 +1,24 @@
 -- Copyright (c) 2018, xiedacon.
 
 local cjson = require "cjson.safe"
-
-local Array = require "utility.array"
 local Object = require "utility.object"
 local fs = require "fs"
+
+local ok, table_new = pcall(require, "table.new")
+if not ok or type(table_new) ~= "function" then
+    table_new = function() return {} end
+end
+
+local ok, table_clear = pcall(require, "table.clear")
+if not ok or type(table_new) ~= "function" then
+    table_clear = function(tab)
+        for k, _ in pairs(tab) do
+            tab[k] = nil
+        end
+
+        return tab
+    end
+end
 
 local LOGGER_OUTPUT_LEVEL = os.getenv("LOGGER_OUTPUT_LEVEL") or "info"
 local LEVELS = {
@@ -16,12 +30,13 @@ local LEVELS = {
 
 local Logger = {
     _VERSION = '0.1',
-    _logs = Array(),
+    _logs = table_new(10000, 0),
     _opts = {
         flush_interval = 10,
         log_file = function(scope, level)
             return ngx.config.prefix() .. "logs/" .. level .. ".log"
         end,
+        size = 10000,
 
         levels = LEVELS,
         output_level = LEVELS[LOGGER_OUTPUT_LEVEL],
@@ -29,11 +44,7 @@ local Logger = {
             local log_str, err = cjson.encode(log)
             if err then return false, err end
     
-            return Array.join({
-                ngx.localtime(),
-                "[" .. log.level .. "]",
-                log_str
-            }, " ")
+            return table.concat({ ngx.localtime(), "[", log.level, "]", log_str }, " ")
         end
     }
 }
@@ -98,24 +109,35 @@ function Logger:set_globle_opts(opts)
 end
 
 function Logger:flush() 
-    local logs = Logger._logs
-    Logger._logs = Array()
-
+    local cache_logs = Logger._logs
+    local size = Logger._opts.size
     local log_file = Logger._opts.log_file
+
     local logMap = {}
-    for _, log in ipairs(logs) do
+    for _, log in ipairs(cache_logs) do
         local file = log_file(log.scope, log.level)
 
-        logMap[file] = logMap[file] or Array()
-        logMap[file]:push(log)
+        if type(file) == "string" then
+            logMap[file] = logMap[file] or table_new(#cache_logs, 0)
+            logMap[file][#logMap[file] + 1] = log.content
+        end
+    end
+
+    if #cache_logs > size then
+        table_clear(cache_logs)
+        Logger._opts.size = #cache_logs
+    else
+        cache_logs = table.new(size)
     end
 
     for file, logs in pairs(logMap) do
-        local log_str = logs:map("content"):join("\n") .. "\n"
-
-        local ok, err = fs.appendToFile(file, log_str)
+        local ok, err = fs.appendToFile(file, table.concat(logs, "\n") .. "\n")
         if not ok then
-            Logger._logs = logs:concat(Logger._logs)
+            local i = #cache_logs + 1
+            for _, log in ipairs(logs) do
+                cache_logs[i] = log
+                i = i + 1
+            end
 
             return false, err
         end
@@ -124,15 +146,17 @@ function Logger:flush()
     return true
 end
 
+local formatter_params = table_new(0, 5)
 function Logger:_log(params)
     if not (params or params.level) then return true end
 
     local level = params.level
     if type(level) ~= "string" then return false, "params level should be string" end
 
-    local scope = self.opts.scope
-    local levels = self.opts.levels
-    local output_level = self.opts.output_level
+    local opts = self.opts
+    local scope = opts.scope
+    local levels = opts.levels
+    local output_level = opts.output_level
     if not levels[level] then return false, "unknow level: " .. level end
     if levels[level] > output_level then return true end
 
@@ -150,20 +174,20 @@ function Logger:_log(params)
         message = nil
     end
 
-    local content, err = self.opts.formatter({
-        scope = scope,
-        level = level,
-        message = message,
-        error = error,
-        data = meta
-    })
+    formatter_params.scope = scope
+    formatter_params.level = level
+    formatter_params.message = message
+    formatter_params.error = error
+    formatter_params.data = meta
+    local content, err = opts.formatter(formatter_params)
+    table_clear(formatter_params)
+
     if not content then return false, "params formatter failed, error: " .. err end
 
-    Logger._logs:push({
-        level = level,
-        scope = scope,
-        content = content
-    })
+    params.level = level
+    params.scope = scope
+    params.content = content
+    Logger._logs[#Logger._logs + 1] = params
 
     return true
 end
