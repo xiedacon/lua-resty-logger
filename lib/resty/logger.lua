@@ -29,7 +29,7 @@ local LEVELS = {
 }
 
 local Logger = {
-    _VERSION = '0.1',
+    _VERSION = '0.2',
     _logs = table_new(10000, 0),
     _opts = {
         flush_interval = 10,
