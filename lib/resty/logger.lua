@@ -127,7 +127,7 @@ function Logger:flush()
         table_clear(cache_logs)
         Logger._opts.size = #cache_logs
     else
-        cache_logs = table.new(size)
+        cache_logs = table_new(size, 0)
     end
 
     for file, logs in pairs(logMap) do
