@@ -1,2 +1,2 @@
-lib/* git@git.souche-inc.com:xieda/lua-utility.git
-lib/* git@git.souche-inc.com:xieda/lua-fs-module.git
+lib/* git@git.souche-inc.com:lua-modules/lua-utility.git
+lib/* git@git.souche-inc.com:lua-modules/lua-fs-module.git
