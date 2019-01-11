@@ -102,6 +102,7 @@ function Logger:set_globle_opts(opts)
         opts.log_file = function() return file end
     end
     if opts.log_file and type(opts.log_file) ~= "function" then return false, "opts log_file should be function or string or nil" end
+    if opts.size and type(opts.size) ~= "number" then return false, "opts size should be number or nil" end
 
     Logger._opts = Object.assign(Logger._opts, opts)
 
