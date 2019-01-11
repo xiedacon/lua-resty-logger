@@ -94,7 +94,7 @@ local Logger = require "resty.logger"
 
 Logger:set_globle_opts({
   log_file = function(scope, level)
-    return ngx.config.prefix() .. "logs/" .. scope .. "." .. level .. ".log"
+    return table.concat({ ngx.config.prefix(), "logs/", scope, ".", level, ".log" }, "")
   end
 })
 
@@ -168,11 +168,12 @@ Same as ``Logger([opts])``
 
 ### logger:set_globle_opts(opts)
 
-* ``opts.flush_interval`` ``<number>`` 刷新间隔
+* ``opts.flush_interval`` ``<number>`` 刷新间隔，默认 10s
 * ``opts.log_file`` ``<function>`` 输出文件
-* ``opts.levels`` ``table`` 全局日志级别
-* ``opts.output_level`` ``number`` 全局数据级别
-* ``opts.formatter`` ``function`` 全局日志处理器
+* ``opts.size`` ``<number>`` 内部缓存大小，默认 10000
+* ``opts.levels`` ``<table>`` 全局日志级别
+* ``opts.output_level`` ``<number>`` 全局数据级别
+* ``opts.formatter`` ``<function>`` 全局日志处理器
 
 ### logger:flush()
 
